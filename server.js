@@ -205,11 +205,7 @@ setInterval(() => {
 
         if (target.health <= 0) {
           const killer = [...players.values()].find(p => p.pid === b.ownerPid);
-          io.emit("kill", {
-  killer: killerName,
-  victim: victimName
-});
-
+          
           if (killer) {
             killer.score++;
             persistentScores.set(killer.pid, killer.score);

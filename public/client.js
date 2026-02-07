@@ -88,19 +88,6 @@ const socket = io("https://multiplayer-shooter-xi3x.onrender.com", {
   auth: { pid: persistentId }
 });
 
-const killFeed = document.getElementById("killFeed");
-
-socket.on("kill", ({ killer, victim }) => {
-  const div = document.createElement("div");
-  div.className = "kill";
-  div.textContent = `🔫 ${killer} eliminated ${victim}`;
-
-  killFeed.appendChild(div);
-
-  setTimeout(() => {
-    div.remove();
-  }, 4000);
-});
 
 
 
