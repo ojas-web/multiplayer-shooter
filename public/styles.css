@@ -202,14 +202,14 @@ body {
   height: 100vh;
 }
 
-#hud {
+/*#hud {
   position: fixed;
   top: 14px;
   left: 14px;
   z-index: 10;
   display: flex;
   gap: 12px;
-}
+}*/
 
 .panel {
   width: 280px;
