@@ -1,3 +1,10 @@
+const isMobile =
+  /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+  ('ontouchstart' in window);
+
+if (isMobile) {
+  document.body.classList.add('mobile');
+}
 
 
 // dom elements
@@ -10,16 +17,10 @@ const joyStick = document.getElementById('joystick-stick');
 const shootBtn = document.getElementById('shootBtn');
 
 //mobile app functions
-const isMobile =
-  /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-  ('ontouchstart' in window);
 
 
-if (isMobile) {
-  mobileControls.style.display = 'block';
-} else {
-  mobileControls.style.display = 'none';
-}
+
+
 
 
 

@@ -1,3 +1,58 @@
+/* =========================
+   MOBILE UI MODE
+   ========================= */
+body.mobile #ui {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 1000;
+}
+
+body.mobile .panel {
+  width: 180px;
+  padding: 8px;
+  font-size: 12px;
+  border-radius: 10px;
+}
+
+body.mobile .panel h1 {
+  font-size: 14px;
+  margin: 0 0 4px 0;
+}
+
+body.mobile .panel p {
+  display: none; /* hide instructions on mobile */
+}
+
+body.mobile .panel label {
+  font-size: 11px;
+}
+
+body.mobile .panel input {
+  width: 100%;
+  font-size: 12px;
+  padding: 4px;
+}
+
+body.mobile .panel button {
+  width: 100%;
+  font-size: 12px;
+  padding: 6px;
+}
+
+body.mobile .stats h2 {
+  font-size: 13px;
+}
+
+body.mobile #leaderboard {
+  max-height: 90px;
+  overflow-y: auto;
+}
+
+
 #watermark {
   position: fixed;
   bottom: 8px;
