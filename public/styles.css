@@ -11,6 +11,55 @@
 }
 
 
+#mobile-controls {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+#joystick-base {
+  position: absolute;
+  bottom: 40px;
+  left: 40px;
+  width: 120px;
+  height: 120px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 50%;
+  pointer-events: auto;
+}
+
+#joystick-stick {
+  position: absolute;
+  left: 40px;
+  top: 40px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.8);
+  border-radius: 50%;
+}
+
+#shootBtn {
+  position: absolute;
+  bottom: 60px;
+  right: 40px;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: red;
+  color: white;
+  font-size: 16px;
+  border: none;
+  pointer-events: auto;
+}
+
+/* Hide on desktop */
+@media (pointer: fine) {
+  #mobile-controls {
+    display: none;
+  }
+}
+
+
 
 
 :root {

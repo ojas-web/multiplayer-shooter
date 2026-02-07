@@ -1,6 +1,27 @@
-// 1️⃣ Canvas first
+
+
+// dom elements
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
+
+const mobileControls = document.getElementById('mobile-controls');
+const joyBase = document.getElementById('joystick-base');
+const joyStick = document.getElementById('joystick-stick');
+const shootBtn = document.getElementById('shootBtn');
+
+//mobile app functions
+const isMobile =
+  /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+  ('ontouchstart' in window);
+
+
+if (isMobile) {
+  mobileControls.style.display = 'block';
+} else {
+  mobileControls.style.display = 'none';
+}
+
+
 
 // 2️⃣ Resize function AFTER canvas exists
 function resize() {
@@ -124,6 +145,15 @@ setInterval(() => {
     angle = Math.atan2(mouse.y - cam.screenY, mouse.x - cam.screenX);
   }
 
+
+
+// 📱 Mobile auto-aim (shoot forward)
+if (isMobile) {
+  mouse.x = canvas.width / 2;
+  mouse.y = canvas.height / 2;
+}
+
+
   socket.emit('input', {
     ...keys,
     angle
@@ -244,4 +274,48 @@ function updateLeaderboard() {
   }
 }
 
+
 render();
+
+
+// ===== MOBILE JOYSTICK =====
+const joyBase = document.getElementById('joystick-base');
+const joyStick = document.getElementById('joystick-stick');
+const shootBtn = document.getElementById('shootBtn');
+
+let joyActive = false;
+let joyCenter = { x: 0, y: 0 };
+
+function updateInput(dx, dy) {
+  keys.up = dy < -0.3;
+  keys.down = dy > 0.3;
+  keys.left = dx < -0.3;
+  keys.right = dx > 0.3;
+}
+
+joyBase?.addEventListener('touchstart', e => {
+  joyActive = true;
+  const t = e.touches[0];
+  joyCenter = { x: t.clientX, y: t.clientY };
+});
+
+joyBase?.addEventListener('touchmove', e => {
+  if (!joyActive) return;
+  const t = e.touches[0];
+  const dx = (t.clientX - joyCenter.x) / 50;
+  const dy = (t.clientY - joyCenter.y) / 50;
+
+  joyStick.style.transform = `translate(${dx * 20}px, ${dy * 20}px)`;
+  updateInput(dx, dy);
+});
+
+joyBase?.addEventListener('touchend', () => {
+  joyActive = false;
+  joyStick.style.transform = 'translate(0,0)';
+  updateInput(0, 0);
+});
+
+// ===== SHOOT BUTTON =====
+shootBtn?.addEventListener('touchstart', () => {
+  socket.emit('shoot');
+});
