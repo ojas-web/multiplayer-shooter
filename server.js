@@ -83,6 +83,13 @@ io.on('connection', (socket) => {
     player.id = socket.id;
   }
 
+  socket.on("connect", () => {
+  const savedName = localStorage.getItem("playerName");
+  if (savedName) {
+    socket.emit("setName", savedName);
+  }
+});
+
   players.set(socket.id, player);
 
   socket.emit('welcome', {
