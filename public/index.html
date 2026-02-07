@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neon Arena — Multiplayer Shooter</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="hud">
+      <div class="panel">
+        <h1>Neon Arena</h1>
+        <p>WASD / Arrow keys to move · Mouse to aim · Click to shoot</p>
+        <label>
+          Callsign
+          <input id="nameInput" type="text" maxlength="18" placeholder="Pilot Name" />
+        </label>
+        <button id="setNameBtn">Set Name</button>
+      </div>
+      <div class="panel stats">
+        <div id="playerInfo">Connecting...</div>
+        <h2>Leaderboard</h2>
+        <ol id="leaderboard"></ol>
+      </div>
+    </div>
+
+    <canvas id="game"></canvas>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+  </body>
+</html>
