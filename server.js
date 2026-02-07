@@ -23,7 +23,7 @@ const BULLET_LIFETIME = 1500;
 const TICK_RATE = 1000 / 60;
 const PLAYER_RADIUS = 18;
 const BULLET_RADIUS = 6;
-const START_HEALTH = 100;
+const START_HEALTH = 200;
 
 let bulletIdCounter = 0;
 
@@ -205,6 +205,11 @@ setInterval(() => {
 
         if (target.health <= 0) {
           const killer = [...players.values()].find(p => p.pid === b.ownerPid);
+          io.emit("kill", {
+  killer: killerName,
+  victim: victimName
+});
+
           if (killer) {
             killer.score++;
             persistentScores.set(killer.pid, killer.score);

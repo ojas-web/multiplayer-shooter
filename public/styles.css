@@ -317,4 +317,30 @@ button {
     margin-left: 0 !important;
   }
 }
+#killFeed {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  width: 260px;
+  z-index: 9999;
+  pointer-events: none;
+  font-family: system-ui, sans-serif;
+}
+
+.kill {
+  background: rgba(0, 0, 0, 0.6);
+  border-left: 3px solid #00eaff;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  color: #fff;
+  font-size: 13px;
+  border-radius: 4px;
+  animation: fadeOut 4s forwards;
+}
+
+@keyframes fadeOut {
+  0%   { opacity: 1; transform: translateY(0); }
+  80%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
 
