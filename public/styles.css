@@ -58,6 +58,29 @@ body.mobile #leaderboard {
   overflow-y: auto;
 }
 
+/* =========================
+   MOBILE LANDSCAPE FIX
+   ========================= */
+@media (max-width: 900px) and (orientation: landscape) {
+
+  body.mobile #ui {
+    flex-direction: column;   /* 👈 stack vertically */
+    top: 6px;
+    left: 6px;
+    gap: 6px;
+  }
+
+  body.mobile .panel,
+  body.mobile .panel.stats {
+    width: 220px;
+  }
+
+  body.mobile .panel.stats {
+    max-height: 120px;
+    overflow-y: auto;
+  }
+}
+
 
 #watermark {
   position: fixed;
