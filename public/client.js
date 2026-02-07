@@ -60,7 +60,7 @@ if (!persistentId) {
   localStorage.setItem('pid', persistentId);
 }
 
-const socket = io({
+const socket = io("https://multiplayer-shooter-xi3x.onrender.com", {
   auth: { pid: persistentId }
 });
 
