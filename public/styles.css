@@ -1,54 +1,60 @@
 /* =========================
-   MOBILE UI MODE
+   MOBILE UI LAYOUT (NO JOYSTICK OVERLAP)
    ========================= */
 body.mobile #ui {
   position: fixed;
   top: 8px;
   left: 8px;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-direction: row;   /* 👈 side by side */
+  gap: 8px;
+  align-items: flex-start;
   z-index: 1000;
 }
 
-body.mobile .panel {
-  width: 180px;
+/* Main panel (name, button) */
+body.mobile .panel:not(.stats) {
+  width: 170px;
   padding: 8px;
   font-size: 12px;
   border-radius: 10px;
 }
 
+/* Leaderboard panel */
+body.mobile .panel.stats {
+  width: 150px;
+  padding: 8px;
+  font-size: 11px;
+  border-radius: 10px;
+}
+
+/* Headings */
 body.mobile .panel h1 {
   font-size: 14px;
   margin: 0 0 4px 0;
 }
 
+body.mobile .panel.stats h2 {
+  font-size: 13px;
+  margin: 4px 0;
+}
+
+/* Hide long instructions on mobile */
 body.mobile .panel p {
-  display: none; /* hide instructions on mobile */
+  display: none;
 }
 
-body.mobile .panel label {
-  font-size: 11px;
-}
-
-body.mobile .panel input {
-  width: 100%;
-  font-size: 12px;
-  padding: 4px;
-}
-
+/* Inputs & buttons */
+body.mobile .panel input,
 body.mobile .panel button {
   width: 100%;
   font-size: 12px;
   padding: 6px;
 }
 
-body.mobile .stats h2 {
-  font-size: 13px;
-}
-
+/* Leaderboard scroll */
 body.mobile #leaderboard {
-  max-height: 90px;
+  max-height: 110px;
   overflow-y: auto;
 }
 
