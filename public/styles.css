@@ -271,3 +271,50 @@ button {
   max-height: 180px;
   overflow: auto;
 }
+
+
+/* ===============================
+   MOBILE + LANDSCAPE UI FIX
+================================ */
+@media (max-width: 900px) and (orientation: landscape) {
+
+  #ui {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 260px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 20;
+    pointer-events: auto;
+  }
+
+  .panel {
+    width: 100%;
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .panel h1 {
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+
+  .panel p {
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  /* Leaderboard stays BELOW set-name panel */
+  .panel.stats {
+    max-height: 120px;
+    overflow-y: auto;
+  }
+
+  /* Prevent UI from covering arena */
+  canvas#game {
+    margin-left: 0 !important;
+  }
+}
+
