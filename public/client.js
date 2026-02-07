@@ -5,6 +5,8 @@ const isMobile =
 if (isMobile) {
   document.body.classList.add('mobile');
 }
+let playerName = localStorage.getItem("playerName") || "Pilot-pid";
+
 
 
 // dom elements
@@ -99,9 +101,15 @@ socket.on('state', (next) => {
   updateLeaderboard();
 });
 
-setNameBtn.addEventListener('click', () => {
-  socket.emit('set_name', nameInput.value);
+setNameBtn.addEventListener("click", () => {
+  const name = nameInput.value.trim();
+  if (!name) return;
+
+  playerName = name;
+  localStorage.setItem("playerName", name); // ⭐ SAVE
+  socket.emit("setName", name);
 });
+
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'w' || e.key === 'ArrowUp') keys.up = true;
