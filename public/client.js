@@ -1,330 +1,166 @@
+// ================= MOBILE DETECTION =================
 const isMobile =
   /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
   ('ontouchstart' in window);
 
-if (isMobile) {
-  document.body.classList.add('mobile');
-}
-let playerName = localStorage.getItem("playerName") || "Pilot-pid";
+if (isMobile) document.body.classList.add('mobile');
 
-
-
-// dom elements
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-
-const mobileControls = document.getElementById('mobile-controls');
-const joyBase = document.getElementById('joystick-base');
-const joyStick = document.getElementById('joystick-stick');
-const shootBtn = document.getElementById('shootBtn');
-
-//mobile app functions
-
-
-
-
-
-
-
-// 2️⃣ Resize function AFTER canvas exists
-function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-
-window.addEventListener("resize", resize);
-resize(); // safe now
-
-// 3️⃣ Persistent ID + socket AFTER canvas
+// ================= PERSISTENT ID =================
 function generateId() {
   return 'pid-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
-
-
-let persistentId = localStorage.getItem('pid');
-if (!persistentId) {
-  persistentId = generateId();
-  localStorage.setItem('pid', persistentId);
+let pid = localStorage.getItem('pid');
+if (!pid) {
+  pid = generateId();
+  localStorage.setItem('pid', pid);
 }
 
+// ================= PLAYER NAME =================
+let playerName = localStorage.getItem("playerName") || "";
 
+// ================= CANVAS =================
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resize);
+resize();
 
-
-
-
-
+// ================= UI =================
 const leaderboardEl = document.getElementById('leaderboard');
 const playerInfoEl = document.getElementById('playerInfo');
 const setNameBtn = document.getElementById('setNameBtn');
 const nameInput = document.getElementById('nameInput');
 
-const keys = { up: false, down: false, left: false, right: false };
-let mouse = { x: 0, y: 0, down: false };
+if (playerName) nameInput.value = playerName;
+
+// ================= SOCKET =================
+const socket = io({
+  auth: { pid }
+});
+
 let myId = null;
 let world = { width: 2400, height: 1400 };
 let playerRadius = 18;
 
-let state = {
-  players: [],
-  bullets: []
-};
+let state = { players: [], bullets: [] };
 
-function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resize);
-resize();
+socket.on('welcome', data => {
+  myId = data.id;
+  world = data.world;
+  playerRadius = data.playerRadius;
 
-
-if (!persistentId) {
-  persistentId = generateId();
-  localStorage.setItem('pid', persistentId);
-}
-
-const socket = io("https://multiplayer-shooter-xi3x.onrender.com", {
-  auth: { pid: persistentId }
+  if (playerName) {
+    socket.emit("set_name", playerName);
+  }
 });
 
-
-
-
-socket.on('welcome', (payload) => {
-  myId = payload.id;
-  world = payload.world;
-  playerRadius = payload.playerRadius;
-});
-
-socket.on('state', (next) => {
+socket.on('state', next => {
   state = next;
-  world = next.world || world;
   updateLeaderboard();
 });
 
-setNameBtn.addEventListener("click", () => {
+// ================= SET NAME =================
+setNameBtn.onclick = () => {
   const name = nameInput.value.trim();
   if (!name) return;
 
   playerName = name;
-  localStorage.setItem("playerName", name); // ⭐ SAVE
-  socket.emit("setName", name);
-});
+  localStorage.setItem("playerName", name);
+  socket.emit("set_name", name);
+};
 
+// ================= INPUT =================
+const keys = { up:false, down:false, left:false, right:false };
+let mouse = { x:0, y:0, down:false };
 
-window.addEventListener('keydown', (e) => {
+window.onkeydown = e => {
   if (e.key === 'w' || e.key === 'ArrowUp') keys.up = true;
   if (e.key === 's' || e.key === 'ArrowDown') keys.down = true;
   if (e.key === 'a' || e.key === 'ArrowLeft') keys.left = true;
   if (e.key === 'd' || e.key === 'ArrowRight') keys.right = true;
-});
+};
 
-window.addEventListener('keyup', (e) => {
+window.onkeyup = e => {
   if (e.key === 'w' || e.key === 'ArrowUp') keys.up = false;
   if (e.key === 's' || e.key === 'ArrowDown') keys.down = false;
   if (e.key === 'a' || e.key === 'ArrowLeft') keys.left = false;
   if (e.key === 'd' || e.key === 'ArrowRight') keys.right = false;
-});
+};
 
-canvas.addEventListener('mousemove', (e) => {
-  const rect = canvas.getBoundingClientRect();
-  mouse.x = e.clientX - rect.left;
-  mouse.y = e.clientY - rect.top;
-});
+canvas.onmousemove = e => {
+  const r = canvas.getBoundingClientRect();
+  mouse.x = e.clientX - r.left;
+  mouse.y = e.clientY - r.top;
+};
 
+canvas.onmousedown = () => mouse.down = true;
+window.onmouseup = () => mouse.down = false;
 
-canvas.addEventListener('mousedown', () => {
-  mouse.down = true;
-  shoot();
-});
-
-window.addEventListener('mouseup', () => {
-  mouse.down = false;
-});
-
-function shoot() {
-  socket.emit('shoot');
-}
-
-
+// ================= GAME LOOP =================
 setInterval(() => {
-  const me = state.players.find((p) => p.id === myId);
+  const me = state.players.find(p => p.id === myId);
   let angle = 0;
+
   if (me) {
-    const cam = camera(me);
-    angle = Math.atan2(mouse.y - cam.screenY, mouse.x - cam.screenX);
+    const camX = me.x - world.width / 2 + canvas.width / 2;
+    const camY = me.y - world.height / 2 + canvas.height / 2;
+    angle = Math.atan2(mouse.y - camY, mouse.x - camX);
   }
 
+  socket.emit('input', { ...keys, angle });
+  if (mouse.down) socket.emit('shoot');
+}, 1000/60);
 
-
-// 📱 Mobile auto-aim (shoot forward)
-if (isMobile) {
-  mouse.x = canvas.width / 2;
-  mouse.y = canvas.height / 2;
-}
-
-
-  socket.emit('input', {
-    ...keys,
-    angle
-  });
-
-  if (mouse.down) {
-    shoot();
-  }
-}, 1000 / 60);
-
-function camera(me) {
-  const x = Math.min(Math.max(me.x, canvas.width / 2), world.width - canvas.width / 2);
-  const y = Math.min(Math.max(me.y, canvas.height / 2), world.height - canvas.height / 2);
-  return {
-    x,
-    y,
-    screenX: me.x - x + canvas.width / 2,
-    screenY: me.y - y + canvas.height / 2
-  };
-}
-
-function drawGrid(offsetX, offsetY) {
-  const spacing = 70;
-  ctx.strokeStyle = 'rgba(148,163,184,0.13)';
-  ctx.lineWidth = 1;
-
-  for (let x = -((offsetX % spacing) + spacing); x < canvas.width + spacing; x += spacing) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, canvas.height);
-    ctx.stroke();
-  }
-
-  for (let y = -((offsetY % spacing) + spacing); y < canvas.height + spacing; y += spacing) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(canvas.width, y);
-    ctx.stroke();
-  }
-}
-
+// ================= RENDER =================
 function render() {
   requestAnimationFrame(render);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const me = state.players.find((p) => p.id === myId);
+  const me = state.players.find(p => p.id === myId);
+  let ox = canvas.width/2 - (me?.x || world.width/2);
+  let oy = canvas.height/2 - (me?.y || world.height/2);
 
-  let camX = world.width / 2;
-  let camY = world.height / 2;
+  ctx.fillStyle = "#020617";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  if (me) {
-    const cam = camera(me);
-    camX = cam.x;
-    camY = cam.y;
-  }
-
-  ctx.fillStyle = '#020617';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  drawGrid(camX, camY);
-
-  const offsetX = canvas.width / 2 - camX;
-  const offsetY = canvas.height / 2 - camY;
-
-  ctx.strokeStyle = 'rgba(2,132,199,0.8)';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(offsetX, offsetY, world.width, world.height);
-
-  for (const bullet of state.bullets) {
+  for (const b of state.bullets) {
     ctx.beginPath();
-    ctx.arc(bullet.x + offsetX, bullet.y + offsetY, 5.0, 0, Math.PI * 2);
-    ctx.fillStyle = '#f43f5e';
+    ctx.arc(b.x + ox, b.y + oy, 5, 0, Math.PI*2);
+    ctx.fillStyle = "#f43f5e";
     ctx.fill();
   }
 
-  for (const player of state.players) {
-    const x = player.x + offsetX;
-    const y = player.y + offsetY;
-
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(player.angle);
-
+  for (const p of state.players) {
     ctx.beginPath();
-    ctx.arc(0, 0, playerRadius, 0, Math.PI * 2);
-    ctx.fillStyle = player.id === myId ? '#22d3ee' : '#a78bfa';
+    ctx.arc(p.x+ox, p.y+oy, playerRadius, 0, Math.PI*2);
+    ctx.fillStyle = p.id===myId ? "#22d3ee" : "#a78bfa";
     ctx.fill();
 
-    ctx.fillStyle = '#f8fafc';
-    ctx.fillRect(0, -4, playerRadius + 12, 8);
-    ctx.restore();
-
-    ctx.fillStyle = '#e2e8f0';
-    ctx.font = '13px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(player.name, x, y - playerRadius - 12);
-
-    const hpWidth = 40;
-    const healthRatio = Math.max(0, Math.min(1, player.health / 100));
-    ctx.fillStyle = 'rgba(15,23,42,0.8)';
-    ctx.fillRect(x - hpWidth / 2, y + playerRadius + 8, hpWidth, 6);
-    ctx.fillStyle = '#22c55e';
-    ctx.fillRect(x - hpWidth / 2, y + playerRadius + 8, hpWidth * healthRatio, 6);
+    ctx.fillStyle="#fff";
+    ctx.textAlign="center";
+    ctx.fillText(p.name, p.x+ox, p.y+oy-playerRadius-10);
   }
 
   if (me) {
     playerInfoEl.textContent = `${me.name} · HP ${me.health} · Score ${me.score}`;
   }
 }
-
-function updateLeaderboard() {
-  const sorted = [...state.players].sort((a, b) => b.score - a.score);
-  leaderboardEl.innerHTML = '';
-  for (const p of sorted.slice(0, 8)) {
-    const li = document.createElement('li');
-    li.textContent = `${p.name} — ${p.score}`;
-    leaderboardEl.appendChild(li);
-  }
-}
-
-
 render();
 
-
-// ===== MOBILE JOYSTICK =====
-
-
-let joyActive = false;
-let joyCenter = { x: 0, y: 0 };
-
-function updateInput(dx, dy) {
-  keys.up = dy < -0.3;
-  keys.down = dy > 0.3;
-  keys.left = dx < -0.3;
-  keys.right = dx > 0.3;
+// ================= LEADERBOARD =================
+function updateLeaderboard() {
+  leaderboardEl.innerHTML="";
+  [...state.players]
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,8)
+    .forEach(p=>{
+      const li=document.createElement("li");
+      li.textContent=`${p.name} — ${p.score}`;
+      leaderboardEl.appendChild(li);
+    });
 }
-
-joyBase?.addEventListener('touchstart', e => {
-  joyActive = true;
-  const t = e.touches[0];
-  joyCenter = { x: t.clientX, y: t.clientY };
-});
-
-joyBase?.addEventListener('touchmove', e => {
-  if (!joyActive) return;
-  const t = e.touches[0];
-  const dx = (t.clientX - joyCenter.x) / 50;
-  const dy = (t.clientY - joyCenter.y) / 50;
-
-  joyStick.style.transform = `translate(${dx * 20}px, ${dy * 20}px)`;
-  updateInput(dx, dy);
-});
-
-joyBase?.addEventListener('touchend', () => {
-  joyActive = false;
-  joyStick.style.transform = 'translate(0,0)';
-  updateInput(0, 0);
-});
-
-// ===== SHOOT BUTTON =====
-shootBtn?.addEventListener('touchstart', () => {
-  socket.emit('shoot');
-});
