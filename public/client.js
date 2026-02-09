@@ -1,5 +1,10 @@
 const playerImg = new Image();
 playerImg.src = '/player.png';
+let myId = null;
+
+socket.on("connect", () => {
+  myId = socket.id;
+});
 
 
 
@@ -55,7 +60,7 @@ const socket = io({
   auth: { pid }
 });
 
-let myId = null;
+
 let world = { width: 2400, height: 1400 };
 let playerRadius = 18;
 
@@ -131,7 +136,37 @@ setInterval(() => {
 // ================= RENDER =================
 function render() {
   requestAnimationFrame(render);
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+function loop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const me = state.players.find(p => p.id === myId);
+  if (!me) {
+    requestAnimationFrame(loop);
+    return;
+  }
+
+  // CAMERA OFFSET
+  const camX = me.x - canvas.width / 2;
+  const camY = me.y - canvas.height / 2;
+
+  ctx.save();
+  ctx.translate(-camX, -camY);
+
+  state.players.forEach(drawPlayer);
+
+  // bullets
+  ctx.fillStyle = "yellow";
+  state.bullets.forEach(b => {
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.restore();
+
+  requestAnimationFrame(loop);
+}
+
 
   const me = state.players.find(p => p.id === myId);
   let ox = canvas.width/2 - (me?.x || world.width/2);
