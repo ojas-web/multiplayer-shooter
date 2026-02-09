@@ -2,9 +2,7 @@ const playerImg = new Image();
 playerImg.src = '/player.png';
 let myId = null;
 
-socket.on("connect", () => {
-  myId = socket.id;
-});
+
 
 
 
@@ -209,3 +207,7 @@ function updateLeaderboard() {
       leaderboardEl.appendChild(li);
     });
 }
+
+socket.on("connect", () => {
+  myId = socket.id;
+});
