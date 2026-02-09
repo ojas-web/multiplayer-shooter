@@ -1,176 +1,101 @@
-const playerImg = new Image();
-playerImg.src = '/player.png';
-
-
-
-
-
-
-
-
-
-
-// ================= MOBILE DETECTION =================
-const isMobile =
-  /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-  ('ontouchstart' in window);
-
-if (isMobile) document.body.classList.add('mobile');
-
-// ================= PERSISTENT ID =================
-function generateId() {
-  return 'pid-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-}
-
-let pid = localStorage.getItem('pid');
-if (!pid) {
-  pid = generateId();
-  localStorage.setItem('pid', pid);
-}
-
-// ================= PLAYER NAME =================
-let playerName = localStorage.getItem("playerName") || "";
-
-// ================= CANVAS =================
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-window.addEventListener("resize", resize);
-resize();
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-// ================= UI =================
-const leaderboardEl = document.getElementById('leaderboard');
-const playerInfoEl = document.getElementById('playerInfo');
-const setNameBtn = document.getElementById('setNameBtn');
-const nameInput = document.getElementById('nameInput');
-
-if (playerName) nameInput.value = playerName;
-
-// ================= SOCKET =================
-const socket = io({
-  auth: { pid }
-});
-
-let myId = null;
-let world = { width: 2400, height: 1400 };
-let playerRadius = 18;
+const socket = io();
 
 let state = { players: [], bullets: [] };
 
-socket.on('welcome', data => {
-  myId = data.id;
-  world = data.world;
-  playerRadius = data.playerRadius;
+const input = {
+  up: false,
+  down: false,
+  left: false,
+  right: false,
+  angle: 0
+};
 
-  if (playerName) {
-    socket.emit("set_name", playerName);
-  }
+document.addEventListener("keydown", e => {
+  if (e.key === "w") input.up = true;
+  if (e.key === "s") input.down = true;
+  if (e.key === "a") input.left = true;
+  if (e.key === "d") input.right = true;
 });
 
-socket.on('state', next => {
-  state = next;
-  updateLeaderboard();
+document.addEventListener("keyup", e => {
+  if (e.key === "w") input.up = false;
+  if (e.key === "s") input.down = false;
+  if (e.key === "a") input.left = false;
+  if (e.key === "d") input.right = false;
 });
 
-// ================= SET NAME =================
-setNameBtn.onclick = () => {
-  const name = nameInput.value.trim();
-  if (!name) return;
+canvas.addEventListener("mousemove", e => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  input.angle = Math.atan2(my - canvas.height / 2, mx - canvas.width / 2);
+});
 
-  playerName = name;
-  localStorage.setItem("playerName", name);
-  socket.emit("set_name", name);
+canvas.addEventListener("click", () => socket.emit("shoot"));
+
+function sendInput() {
+  socket.emit("input", input);
+  requestAnimationFrame(sendInput);
+}
+sendInput();
+
+socket.on("state", s => state = s);
+
+document.getElementById("setName").onclick = () => {
+  socket.emit("set_name", document.getElementById("nameInput").value);
 };
 
-// ================= INPUT =================
-const keys = { up:false, down:false, left:false, right:false };
-let mouse = { x:0, y:0, down:false };
+function drawPlayer(p) {
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(p.angle);
 
-window.onkeydown = e => {
-  if (e.key === 'w' || e.key === 'ArrowUp') keys.up = true;
-  if (e.key === 's' || e.key === 'ArrowDown') keys.down = true;
-  if (e.key === 'a' || e.key === 'ArrowLeft') keys.left = true;
-  if (e.key === 'd' || e.key === 'ArrowRight') keys.right = true;
-};
+  // body
+  ctx.fillStyle = "#22c55e";
+  ctx.fillRect(-15, -20, 30, 40);
 
-window.onkeyup = e => {
-  if (e.key === 'w' || e.key === 'ArrowUp') keys.up = false;
-  if (e.key === 's' || e.key === 'ArrowDown') keys.down = false;
-  if (e.key === 'a' || e.key === 'ArrowLeft') keys.left = false;
-  if (e.key === 'd' || e.key === 'ArrowRight') keys.right = false;
-};
+  // head
+  ctx.beginPath();
+  ctx.arc(0, -30, 10, 0, Math.PI * 2);
+  ctx.fillStyle = "#fde68a";
+  ctx.fill();
 
-canvas.onmousemove = e => {
-  const r = canvas.getBoundingClientRect();
-  mouse.x = e.clientX - r.left;
-  mouse.y = e.clientY - r.top;
-};
+  // legs
+  ctx.fillRect(-12, 20, 8, 18);
+  ctx.fillRect(4, 20, 8, 18);
 
-canvas.onmousedown = () => mouse.down = true;
-window.onmouseup = () => mouse.down = false;
+  ctx.restore();
 
-// ================= GAME LOOP =================
-setInterval(() => {
-  const me = state.players.find(p => p.id === myId);
-  let angle = 0;
+  // name
+  ctx.fillStyle = "white";
+  ctx.textAlign = "center";
+  ctx.fillText(p.name, p.x, p.y - 50);
 
-  if (me) {
-    const camX = me.x - world.width / 2 + canvas.width / 2;
-    const camY = me.y - world.height / 2 + canvas.height / 2;
-    angle = Math.atan2(mouse.y - camY, mouse.x - camX);
-  }
+  // health bar
+  ctx.fillStyle = "red";
+  ctx.fillRect(p.x - 18, p.y + 45, 36, 5);
+  ctx.fillStyle = "lime";
+  ctx.fillRect(p.x - 18, p.y + 45, 36 * (p.health / 100), 5);
+}
 
-  socket.emit('input', { ...keys, angle });
-  if (mouse.down) socket.emit('shoot');
-}, 1000/60);
+function loop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-// ================= RENDER =================
-function render() {
-  requestAnimationFrame(render);
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  state.players.forEach(drawPlayer);
 
-  const me = state.players.find(p => p.id === myId);
-  let ox = canvas.width/2 - (me?.x || world.width/2);
-  let oy = canvas.height/2 - (me?.y || world.height/2);
-
-  ctx.fillStyle = "#020617";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  for (const b of state.bullets) {
+  ctx.fillStyle = "yellow";
+  state.bullets.forEach(b => {
     ctx.beginPath();
-    ctx.arc(b.x + ox, b.y + oy, 5, 0, Math.PI*2);
-    ctx.fillStyle = "#f43f5e";
+    ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
     ctx.fill();
-  }
+  });
 
-  for (const p of state.players) {
-   ctx.save();
-ctx.translate(x, y);
-ctx.rotate(player.angle);
-ctx.drawImage(playerImg, -24, -24, 48, 48);
-ctx.restore();
-
-  }
-
-  if (me) {
-    playerInfoEl.textContent = `${me.name} · HP ${me.health} · Score ${me.score}`;
-  }
+  requestAnimationFrame(loop);
 }
-render();
-
-// ================= LEADERBOARD =================
-function updateLeaderboard() {
-  leaderboardEl.innerHTML="";
-  [...state.players]
-    .sort((a,b)=>b.score-a.score)
-    .slice(0,8)
-    .forEach(p=>{
-      const li=document.createElement("li");
-      li.textContent=`${p.name} — ${p.score}`;
-      leaderboardEl.appendChild(li);
-    });
-}
+loop();
