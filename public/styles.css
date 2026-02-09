@@ -1,18 +1,320 @@
+/* =========================
+   MOBILE UI LAYOUT (NO JOYSTICK OVERLAP)
+   ========================= */
+body.mobile #ui {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  flex-direction: row;   /* 👈 side by side */
+  gap: 8px;
+  align-items: flex-start;
+  z-index: 1000;
+}
+
+/* Main panel (name, button) */
+body.mobile .panel:not(.stats) {
+  width: 170px;
+  padding: 8px;
+  font-size: 12px;
+  border-radius: 10px;
+}
+
+/* Leaderboard panel */
+body.mobile .panel.stats {
+  width: 150px;
+  padding: 8px;
+  font-size: 11px;
+  border-radius: 10px;
+}
+
+/* Headings */
+body.mobile .panel h1 {
+  font-size: 14px;
+  margin: 0 0 4px 0;
+}
+
+body.mobile .panel.stats h2 {
+  font-size: 13px;
+  margin: 4px 0;
+}
+
+/* Hide long instructions on mobile */
+body.mobile .panel p {
+  display: none;
+}
+
+/* Inputs & buttons */
+body.mobile .panel input,
+body.mobile .panel button {
+  width: 100%;
+  font-size: 12px;
+  padding: 6px;
+}
+
+/* Leaderboard scroll */
+body.mobile #leaderboard {
+  max-height: 110px;
+  overflow-y: auto;
+}
+
+/* =========================
+   MOBILE LANDSCAPE FIX
+   ========================= */
+@media (max-width: 900px) and (orientation: landscape) {
+
+  body.mobile #ui {
+    flex-direction: column;   /* 👈 stack vertically */
+    top: 6px;
+    left: 6px;
+    gap: 6px;
+  }
+
+  body.mobile .panel,
+  body.mobile .panel.stats {
+    width: 220px;
+  }
+
+  body.mobile .panel.stats {
+    max-height: 120px;
+    overflow-y: auto;
+  }
+}
+
 html, body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
-  background: #020617;
+}
+
+/* 🎮 Canvas fills screen */
+#game {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  z-index: 0;
+}
+
+/* 🧩 UI floats over canvas */
+#ui {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* allow clicks inside panels */
+#ui .panel {
+  pointer-events: auto;
+}
+
+
+#watermark {
+  position: fixed;
+  bottom: 8px;
+  right: 10px;
+  font-size: 14px;
   color: white;
+  opacity: 0.4;
+  pointer-events: none;
   font-family: Arial, sans-serif;
+  z-index: 9999;
+}
+
+
+#mobile-controls {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+#joystick-base {
+  position: absolute;
+  bottom: 40px;
+  left: 40px;
+  width: 120px;
+  height: 120px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 50%;
+  pointer-events: auto;
+}
+
+#joystick-stick {
+  position: absolute;
+  left: 40px;
+  top: 40px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.8);
+  border-radius: 50%;
+}
+
+#shootBtn {
+  position: absolute;
+  bottom: 60px;
+  right: 40px;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: red;
+  color: white;
+  font-size: 16px;
+  border: none;
+  pointer-events: auto;
+}
+
+/* Hide on desktop */
+@media (pointer: fine) {
+  #mobile-controls {
+    display: none;
+  }
+}
+
+
+
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: Inter, Segoe UI, Roboto, sans-serif;
+  background: radial-gradient(circle at top, #1f2937, #020617 55%);
+  color: #e2e8f0;
 }
 
 #game {
   display: block;
+  width: 100vw;
+  height: 100vh;
 }
 
-#ui {
+/*#hud {
   position: fixed;
-  top: 10px;
-  left: 10px;
+  top: 14px;
+  left: 14px;
+  z-index: 10;
+  display: flex;
+  gap: 12px;
+}*/
+
+.panel {
+  width: 280px;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.28);
 }
+
+.panel h1,
+.panel h2 {
+  margin: 0 0 8px;
+}
+
+.panel p {
+  margin: 0 0 12px;
+  color: #f3f5f7;
+  font-size: 0.88rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+}
+
+input,
+button {
+  width: 100%;
+  margin-top: 4px;
+  padding: 9px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+button {
+  cursor: pointer;
+  background: linear-gradient(90deg, #0ea5e9, #6366f1);
+  border: none;
+  font-weight: 600;
+}
+
+.stats {
+  width: 240px;
+}
+
+#playerInfo {
+  font-size: 0.92rem;
+  margin-bottom: 8px;
+}
+
+#leaderboard {
+  margin: 0;
+  padding-left: 20px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+
+/* ===============================
+   MOBILE + LANDSCAPE UI FIX
+================================ */
+@media (max-width: 900px) and (orientation: landscape) {
+
+  #ui {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 260px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 20;
+    pointer-events: auto;
+  }
+
+  .panel {
+    width: 100%;
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .panel h1 {
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+
+  .panel p {
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  /* Leaderboard stays BELOW set-name panel */
+  .panel.stats {
+    max-height: 120px;
+    overflow-y: auto;
+  }
+
+  /* Prevent UI from covering arena */
+  canvas#game {
+    margin-left: 0 !important;
+  }
+}
+
