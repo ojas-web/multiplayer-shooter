@@ -23,7 +23,7 @@ const SPEED = 500;
 const BULLET_SPEED = 850;
 const PLAYER_RADIUS = 18;
 const BULLET_RADIUS = 6;
-const START_HP = 200;
+const START_HP = 100;
 
 // ================= HELPERS =================
 function spawn() {

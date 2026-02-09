@@ -1,3 +1,15 @@
+const playerImg = new Image();
+playerImg.src = '/player.png';
+
+
+
+
+
+
+
+
+
+
 // ================= MOBILE DETECTION =================
 const isMobile =
   /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
@@ -136,14 +148,12 @@ function render() {
   }
 
   for (const p of state.players) {
-    ctx.beginPath();
-    ctx.arc(p.x+ox, p.y+oy, playerRadius, 0, Math.PI*2);
-    ctx.fillStyle = p.id===myId ? "#22d3ee" : "#a78bfa";
-    ctx.fill();
+   ctx.save();
+ctx.translate(x, y);
+ctx.rotate(player.angle);
+ctx.drawImage(playerImg, -24, -24, 48, 48);
+ctx.restore();
 
-    ctx.fillStyle="#fff";
-    ctx.textAlign="center";
-    ctx.fillText(p.name, p.x+ox, p.y+oy-playerRadius-10);
   }
 
   if (me) {
